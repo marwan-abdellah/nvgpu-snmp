@@ -1,0 +1,201 @@
+nvgpu-snmp Net-SNMP agent
+*************************
+
+nvgpu-snmp is an SNMP agent for `Net-SNMP <http://net-snmp.sourceforge.net/>`_
+to gather information about NVIDIA GPUs, for example BIOS and driver versions,
+GPU core and ambient temperatures, and GPU and memory clock frequencies.
+
+It supports NVIDIA graphics cards (GeForce/Quadro series) as well as NVIDIA
+Tesla computing processors, provided the system is running an X server with the
+NVIDIA X display driver. It allows for effortless temperature monitoring in
+both small and large GPGPU computing cluster environments.
+
+
+License
+=======
+nvgpu-snmp is licensed under the GNU General Public License version 2 or later.
+
+
+Website
+=======
+This documentation is also available at http://colberg.org/code/nvgpu-snmp/.
+
+
+Getting the source code
+=======================
+nvgpu-snmp is maintained in a git repository. To get the source code, run::
+
+ git clone git://git.colberg.org/git/nvgpu-snmp
+
+
+Prerequisites
+=============
+nvgpu-snmp requires a running X server with the NVIDIA X display driver.
+It suffices to have the login manager of KDM or GDM running.
+To test whether the NV-CONTROL X extension is working, run as root::
+
+ export XAUTHORITY=/var/lib/gdm/:0.Xauth
+ export DISPLAY=:0
+ nvidia-settings -q gpus
+
+::
+
+ 2 GPUs on hal:0
+ 
+     [0] hal:0[gpu:0] (GeForce GTX 280)
+ 
+     [1] hal:0[gpu:1] (GeForce GTX 280)
+
+to list the available GPUs in the system, where the ``XAUTHORITY`` environment
+variable contains the path to the authority file of the current X session (in
+this case of the GDM login screen).
+
+Note that only one GPU needs to be configured as a screen in the ``xorg.conf``
+file, which may also be a headless GPU such as an NVIDIA Tesla device: As long
+as you manage to start an X server on any of the available NVIDIA GPUs, you may
+query the NV-CONTROL X extension attributes of all of them.
+
+
+Installation
+============
+The Net-SNMP, Xext and X11 headers and libraries are required for compilation.
+
+To compile the source code, run::
+
+ make
+
+This will produce the shared object module ``nvgpu-snmp.so``, which may be
+installed along with the MIB module ``NV-CTRL-MIB.txt`` using::
+
+ make install
+
+Otherwise, if your installation of Net-SNMP does not use the default paths for
+shared object modules or MIB modules, copy them manually.
+
+
+SNMP daemon configuration
+=========================
+Next, configure the SNMP daemon to load the module by including the following
+snippet in the snmpd.conf file::
+
+ dlmod nvCtrlTable nvgpu-snmp
+
+While you are at it, allow local access to the SNMP daemon for testing purposes::
+
+ com2sec server    127.0.0.1                             public
+
+
+Before starting snmpd, the DISPLAY environment variable has to be set::
+
+ export DISPLAY=:0
+
+This command may for example be included in the ``/etc/default/snmpd`` or
+a similar file.
+
+
+Granting X server access to the SNMP daemon
+===========================================
+The tricky part is to allow the SNMP daemon to access the X server in order to
+query the NV-CONTROL X extension.
+
+One possibility is to give the user of the snmpd process read access to the X
+authority file of the current X session and manually inform snmpd about its path
+by setting the XAUTHORITY environment variable.
+
+A slightly more elegant solution is to use ``xhost +si:localuser:snmp`` in the
+current X session to grant the ``snmp`` user access to the X server. For the
+example of the GDM login manager, this may be achieved by running as root::
+
+ export XAUTHORITY=/var/lib/gdm/:0.Xauth
+ export DISPLAY=:0
+ xhost +si:localuser:snmp
+
+If your distribution has a ``/etc/X11/Xsession.d/`` directory to execute arbitrary
+scripts upon X session initialization as the session user, placing a script such
+as the following into this directory might also work::
+
+ #
+ # allow snmp daemon to access NV-CONTROL X extension
+ #
+ xhost +si:localuser:snmp
+
+
+Testing
+=======
+
+Use ``snmpwalk`` to query the nvgpu-snmp agent module::
+ 
+ snmpwalk localhost nvCtrl
+
+::
+
+ NV-CTRL-MIB::nvCtrlGPU.0 = INTEGER: 0
+ NV-CTRL-MIB::nvCtrlGPU.1 = INTEGER: 1
+ NV-CTRL-MIB::nvCtrlProductName.0 = STRING: GeForce GTX 280
+ NV-CTRL-MIB::nvCtrlProductName.1 = STRING: GeForce GTX 280
+ NV-CTRL-MIB::nvCtrlVBiosVersion.0 = STRING: 62.00.0e.00.01
+ NV-CTRL-MIB::nvCtrlVBiosVersion.1 = STRING: 62.00.0e.00.01
+ NV-CTRL-MIB::nvCtrlNvidiaDriverVersion.0 = STRING: 185.18.14
+ NV-CTRL-MIB::nvCtrlNvidiaDriverVersion.1 = STRING: 185.18.14
+ NV-CTRL-MIB::nvCtrlVersion.0 = STRING: 1.18
+ NV-CTRL-MIB::nvCtrlVersion.1 = STRING: 1.18
+ NV-CTRL-MIB::nvCtrlBusType.0 = INTEGER: 2
+ NV-CTRL-MIB::nvCtrlBusType.1 = INTEGER: 2
+ NV-CTRL-MIB::nvCtrlBusRate.0 = INTEGER: 16
+ NV-CTRL-MIB::nvCtrlBusRate.1 = INTEGER: 16
+ NV-CTRL-MIB::nvCtrlVideoRam.0 = INTEGER: 1048576
+ NV-CTRL-MIB::nvCtrlVideoRam.1 = INTEGER: 1048576
+ NV-CTRL-MIB::nvCtrlIrq.0 = INTEGER: 16
+ NV-CTRL-MIB::nvCtrlIrq.1 = INTEGER: 19
+ NV-CTRL-MIB::nvCtrlGPUCoreTemp.0 = INTEGER: 49
+ NV-CTRL-MIB::nvCtrlGPUCoreTemp.1 = INTEGER: 46
+ NV-CTRL-MIB::nvCtrlGPUCoreThreshold.0 = INTEGER: 190
+ NV-CTRL-MIB::nvCtrlGPUCoreThreshold.1 = INTEGER: 190
+ NV-CTRL-MIB::nvCtrlGPUDefaultCoreThreshold.0 = INTEGER: 190
+ NV-CTRL-MIB::nvCtrlGPUDefaultCoreThreshold.1 = INTEGER: 190
+ NV-CTRL-MIB::nvCtrlGPUMaxCoreThreshold.0 = INTEGER: 190
+ NV-CTRL-MIB::nvCtrlGPUMaxCoreThreshold.1 = INTEGER: 190
+ NV-CTRL-MIB::nvCtrlGPUAmbientTemp.0 = INTEGER: 41
+ NV-CTRL-MIB::nvCtrlGPUAmbientTemp.1 = INTEGER: 40
+ NV-CTRL-MIB::nvCtrlGPUOverclockingState.0 = INTEGER: 0
+ NV-CTRL-MIB::nvCtrlGPUOverclockingState.1 = INTEGER: 0
+ NV-CTRL-MIB::nvCtrlGPU2DGPUClockFreq.0 = INTEGER: 300
+ NV-CTRL-MIB::nvCtrlGPU2DGPUClockFreq.1 = INTEGER: 300
+ NV-CTRL-MIB::nvCtrlGPU2DMemClockFreq.0 = INTEGER: 100
+ NV-CTRL-MIB::nvCtrlGPU2DMemClockFreq.1 = INTEGER: 100
+ NV-CTRL-MIB::nvCtrlGPU3DGPUClockFreq.0 = INTEGER: 602
+ NV-CTRL-MIB::nvCtrlGPU3DGPUClockFreq.1 = INTEGER: 602
+ NV-CTRL-MIB::nvCtrlGPU3DMemClockFreq.0 = INTEGER: 1107
+ NV-CTRL-MIB::nvCtrlGPU3DMemClockFreq.1 = INTEGER: 1107
+ NV-CTRL-MIB::nvCtrlGPUDefault2DGPUClockFreq.0 = INTEGER: 300
+ NV-CTRL-MIB::nvCtrlGPUDefault2DGPUClockFreq.1 = INTEGER: 300
+ NV-CTRL-MIB::nvCtrlGPUDefault2DMemClockFreq.0 = INTEGER: 100
+ NV-CTRL-MIB::nvCtrlGPUDefault2DMemClockFreq.1 = INTEGER: 100
+ NV-CTRL-MIB::nvCtrlGPUDefault3DGPUClockFreq.0 = INTEGER: 602
+ NV-CTRL-MIB::nvCtrlGPUDefault3DGPUClockFreq.1 = INTEGER: 602
+ NV-CTRL-MIB::nvCtrlGPUDefault3DMemClockFreq.0 = INTEGER: 1107
+ NV-CTRL-MIB::nvCtrlGPUDefault3DMemClockFreq.1 = INTEGER: 1107
+ NV-CTRL-MIB::nvCtrlGPUCurrentGPUClockFreq.0 = INTEGER: 300
+ NV-CTRL-MIB::nvCtrlGPUCurrentGPUClockFreq.1 = INTEGER: 300
+ NV-CTRL-MIB::nvCtrlGPUCurrentMemClockFreq.0 = INTEGER: 100
+ NV-CTRL-MIB::nvCtrlGPUCurrentMemClockFreq.1 = INTEGER: 100
+
+
+Note that the module caches queries for 5 seconds by default. If you want to
+change the timeout, define ``NV_CTRL_TABLE_CACHE_TIMEOUT`` as the time in
+seconds upon compilation.
+
+
+Troubleshooting
+===============
+To debug the nvgpu-snmp agent module, start snmpd with::
+
+ DISPLAY=:0 sudo snmpd -u snmp -DnvCtrlTable -f
+
+and query the ``nvCtrl`` table using snmpwalk.
+
+
+Author
+======
+For suggestions or bug reports, mail me: Peter Colberg <peter@colberg.org>
+
