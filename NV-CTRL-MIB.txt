@@ -1,0 +1,268 @@
+NV-CTRL-MIB DEFINITIONS ::= BEGIN
+
+IMPORTS
+    MODULE-IDENTITY, OBJECT-TYPE, Integer32
+        FROM SNMPv2-SMI
+    DisplayString
+        FROM SNMPv2-TC
+    ucdExperimental
+        FROM UCD-SNMP-MIB;
+
+nvCtrl OBJECT IDENTIFIER ::= { ucdExperimental 42 }
+
+nvCtrlMIB MODULE-IDENTITY
+    LAST-UPDATED  "200902080000Z"
+    ORGANIZATION  "NVIDIA"
+    CONTACT-INFO  "NVIDIA"
+    DESCRIPTION   "MIB for NV-CTRL X Extension"
+    REVISION      "200902080000Z"
+    DESCRIPTION   "Initial revision."
+    ::= { nvCtrl 1 }
+
+nvCtrlTable OBJECT-TYPE
+    SYNTAX      SEQUENCE OF NvCtrlEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION "Table of NV-CTRL extension capable GPUs"
+    ::= { nvCtrl 2 }
+
+nvCtrlEntry OBJECT-TYPE
+    SYNTAX      NvCtrlEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION "NV-CTRL extension capable GPU"
+    INDEX   { nvCtrlGPU }
+    ::= { nvCtrlTable 1 }
+
+NvCtrlEntry ::=
+    -- This table supports at most 32 entries, due to a limitation
+    -- in the sparse column handling of the MIBs For Dummies agent.
+    SEQUENCE {
+        nvCtrlGPU                           Integer32,
+        nvCtrlProductName                   DisplayString,
+        nvCtrlVBiosVersion                  DisplayString,
+        nvCtrlNvidiaDriverVersion           DisplayString,
+        nvCtrlVersion                       DisplayString
+        nvCtrlBusType                       Integer32,
+        nvCtrlBusRate                       Integer32,
+        nvCtrlVideoRam                      Integer32,
+        nvCtrlIrq                           Integer32,
+        nvCtrlGPUCoreTemp                   Integer32,
+        nvCtrlGPUCoreThreshold              Integer32,
+        nvCtrlGPUDefaultCoreThreshold       Integer32,
+        nvCtrlGPUMaxCoreThreshold           Integer32,
+        nvCtrlGPUAmbientTemp                Integer32,
+        nvCtrlGPUOverclockingState          Integer32,
+        nvCtrlGPU2DGPUClockFreq             Integer32,
+        nvCtrlGPU2DMemClockFreq             Integer32,
+        nvCtrlGPU3DGPUClockFreq             Integer32,
+        nvCtrlGPU3DMemClockFreq             Integer32,
+        nvCtrlGPUDefault2DGPUClockFreq      Integer32,
+        nvCtrlGPUDefault2DMemClockFreq      Integer32,
+        nvCtrlGPUDefault3DGPUClockFreq      Integer32,
+        nvCtrlGPUDefault3DMemClockFreq      Integer32,
+        nvCtrlGPUCurrentGPUClockFreq        Integer32,
+        nvCtrlGPUCurrentMemClockFreq        Integer32,
+    }
+
+nvCtrlGPU OBJECT-TYPE
+    SYNTAX      Integer32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "GPU that has the display device(s) used for showing the X Screen"
+    ::= { nvCtrlEntry 1 }
+
+nvCtrlProductName OBJECT-TYPE
+    SYNTAX      DisplayString (SIZE (0..255))
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "GPU product name"
+    ::= { nvCtrlEntry 2 }
+
+nvCtrlVBiosVersion OBJECT-TYPE
+    SYNTAX      DisplayString (SIZE (0..255))
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "video bios version on the GPU"
+    ::= { nvCtrlEntry 3 }
+
+nvCtrlNvidiaDriverVersion OBJECT-TYPE
+    SYNTAX      DisplayString (SIZE (0..255))
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "NVIDIA driver version number for the NVIDIA X driver in use"
+    ::= { nvCtrlEntry 4 }
+
+nvCtrlVersion OBJECT-TYPE
+    SYNTAX      DisplayString (SIZE (0..255))
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "NV-CONTROL extension version"
+    ::= { nvCtrlEntry 5 }
+
+nvCtrlBusType OBJECT-TYPE
+    SYNTAX      Integer32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "Bus type through which the GPU is connected to the computer"
+    ::= { nvCtrlEntry 6 }
+
+nvCtrlBusRate OBJECT-TYPE
+    SYNTAX      Integer32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "AGP transfer rate or PCI Express width"
+    ::= { nvCtrlEntry 7 }
+
+nvCtrlVideoRam OBJECT-TYPE
+    SYNTAX      Integer32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "total amount of memory available to the GPU"
+    ::= { nvCtrlEntry 8 }
+
+nvCtrlIrq OBJECT-TYPE
+    SYNTAX      Integer32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "interrupt request line used by the GPU"
+    ::= { nvCtrlEntry 9 }
+
+nvCtrlGPUCoreTemp OBJECT-TYPE
+    SYNTAX      Integer32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "current core temperature of the GPU"
+    ::= { nvCtrlEntry 10 }
+
+nvCtrlGPUCoreThreshold OBJECT-TYPE
+    SYNTAX      Integer32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "current GPU core slowdown threshold temperature"
+    ::= { nvCtrlEntry 11 }
+
+nvCtrlGPUDefaultCoreThreshold OBJECT-TYPE
+    SYNTAX      Integer32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "default core slowdown threshold temperature"
+    ::= { nvCtrlEntry 12 }
+
+nvCtrlGPUMaxCoreThreshold OBJECT-TYPE
+    SYNTAX      Integer32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "maximum core slowdown threshold temperature"
+    ::= { nvCtrlEntry 13 }
+
+nvCtrlGPUAmbientTemp OBJECT-TYPE
+    SYNTAX      Integer32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "current temperature in the immediate neighbourhood of the GPU"
+    ::= { nvCtrlEntry 14 }
+
+nvCtrlGPUOverclockingState OBJECT-TYPE
+    SYNTAX      Integer32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "query the availability of additional overclocking attributes"
+    ::= { nvCtrlEntry 15 }
+
+nvCtrlGPU2DGPUClockFreq OBJECT-TYPE
+    SYNTAX      Integer32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "2D GPU clock frequency in MHz"
+    ::= { nvCtrlEntry 16 }
+
+nvCtrlGPU2DMemClockFreq OBJECT-TYPE
+    SYNTAX      Integer32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "2D memory clock frequency in MHz"
+    ::= { nvCtrlEntry 17 }
+
+nvCtrlGPU3DGPUClockFreq OBJECT-TYPE
+    SYNTAX      Integer32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "3D GPU clock frequency in MHz"
+    ::= { nvCtrlEntry 18 }
+
+nvCtrlGPU3DMemClockFreq OBJECT-TYPE
+    SYNTAX      Integer32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "3D memory clock frequency in MHz"
+    ::= { nvCtrlEntry 19 }
+
+nvCtrlGPUDefault2DGPUClockFreq OBJECT-TYPE
+    SYNTAX      Integer32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "default 2D GPU clock frequency in MHz"
+    ::= { nvCtrlEntry 20 }
+
+nvCtrlGPUDefault2DMemClockFreq OBJECT-TYPE
+    SYNTAX      Integer32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "default 2D memory clock frequency in MHz"
+    ::= { nvCtrlEntry 21 }
+
+nvCtrlGPUDefault3DGPUClockFreq OBJECT-TYPE
+    SYNTAX      Integer32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "default 3D GPU clock frequency in MHz"
+    ::= { nvCtrlEntry 22 }
+
+nvCtrlGPUDefault3DMemClockFreq OBJECT-TYPE
+    SYNTAX      Integer32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "default 3D memory clock frequency in MHz"
+    ::= { nvCtrlEntry 23 }
+
+nvCtrlGPUCurrentGPUClockFreq OBJECT-TYPE
+    SYNTAX      Integer32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "current GPU clock frequency in MHz"
+    ::= { nvCtrlEntry 24 }
+
+nvCtrlGPUCurrentMemClockFreq OBJECT-TYPE
+    SYNTAX      Integer32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "current memory clock frequency in MHz"
+    ::= { nvCtrlEntry 25 }
+
+END
